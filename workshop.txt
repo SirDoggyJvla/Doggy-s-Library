@@ -1,0 +1,6 @@
+version=1
+title=Doggy's API
+description=
+tags=Build 42;Misc
+visibility=public
+require=\StarlitLibrary

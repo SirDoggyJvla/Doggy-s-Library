@@ -1,0 +1,5 @@
+ContextMenu_EN = {
+    ContextMenu_DoggyAPI_InsertBattery = "Insert battery",
+    ContextMenu_DoggyAPI_SwapBattery = "Swap battery",
+    ContextMenu_DoggyAPI_RemoveBattery = "Remove battery",
+}
