@@ -11,17 +11,10 @@ Various events the framework links to.
 ]]--
 --[[ ================================================ ]]--
 
----requirements
-local DoggyAPI = require "DoggyAPI_module"
-require "DoggyTools/DoggyAPI_world"
-local BatteryHandler = require "DoggyTools/DoggyAPI_BatteryHandler"
-
----Event triggered when global mod data get initialized
-Events.OnInitGlobalModData.Add(function()
-    DoggyAPI.MODDATA.NewChunks = ModData.getOrCreate("DoggyAPI_NewChunk")
-end)
-
+---Event triggered when the player right clicks on an item in the inventory
+local BatteryHandler = require "DoggyTools/BatteryHandler"
 Events.OnFillInventoryObjectContextMenu.Add(BatteryHandler.OnFillInventoryObjectContextMenu)
 
 ---Event triggered when a chunk is loaded
-Events.LoadChunk.Add(DoggyAPI.WORLD.LoadChunk)
+local LoadNewChunk = require "DoggyEvents/LoadNewChunk"
+Events.LoadChunk.Add(LoadNewChunk.LoadChunk)

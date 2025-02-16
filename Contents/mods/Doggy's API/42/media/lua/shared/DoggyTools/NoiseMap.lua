@@ -13,8 +13,7 @@ Noise map tools of TLOU Spores. Used to calculate a linear interpolation functio
 
 --- CACHING
 -- module
-local DoggyAPI = require "DoggyAPI_module"
-local NOISEMAP = DoggyAPI.NOISEMAP
+local NoiseMap = {}
 
 -- random
 local NOISEMAP_RANDOM = newrandom()
@@ -29,7 +28,7 @@ local NOISEMAP_RANDOM = newrandom()
 ---@param Y_SEED integer
 ---@param OFFSET_SEED integer
 ---@return table
-NOISEMAP.randomGradient = function(x, y, MINIMUM_NOISE_VECTOR_VALUE, MAXIMUM_NOISE_VECTOR_VALUE, X_SEED, Y_SEED, OFFSET_SEED)
+NoiseMap.randomGradient = function(x, y, MINIMUM_NOISE_VECTOR_VALUE, MAXIMUM_NOISE_VECTOR_VALUE, X_SEED, Y_SEED, OFFSET_SEED)
     local seed = x * X_SEED + y * Y_SEED + OFFSET_SEED
     NOISEMAP_RANDOM:seed(seed)
     return table.newarray( -- Random vector
@@ -50,7 +49,7 @@ end
 ---@param Y_SEED integer
 ---@param OFFSET_SEED integer
 ---@return number
-NOISEMAP.getNoiseValue = function(
+NoiseMap.getNoiseValue = function(
     x,y,
     NOISE_MAP_SCALE,
     MINIMUM_NOISE_VECTOR_VALUE,MAXIMUM_NOISE_VECTOR_VALUE,
@@ -67,16 +66,16 @@ NOISEMAP.getNoiseValue = function(
     local y1 = y0 + 1
 
     -- Compute noise values at each corner
-    local gradient = NOISEMAP.randomGradient(x0, y0, MINIMUM_NOISE_VECTOR_VALUE, MAXIMUM_NOISE_VECTOR_VALUE, X_SEED, Y_SEED, OFFSET_SEED)
+    local gradient = NoiseMap.randomGradient(x0, y0, MINIMUM_NOISE_VECTOR_VALUE, MAXIMUM_NOISE_VECTOR_VALUE, X_SEED, Y_SEED, OFFSET_SEED)
     local n00 = (scaledX - x0) * gradient[1] + (scaledY - y0) * gradient[2]
 
-    local gradient = NOISEMAP.randomGradient(x1, y0, MINIMUM_NOISE_VECTOR_VALUE, MAXIMUM_NOISE_VECTOR_VALUE, X_SEED, Y_SEED, OFFSET_SEED)
+    local gradient = NoiseMap.randomGradient(x1, y0, MINIMUM_NOISE_VECTOR_VALUE, MAXIMUM_NOISE_VECTOR_VALUE, X_SEED, Y_SEED, OFFSET_SEED)
     local n10 = (scaledX - x1) * gradient[1] + (scaledY - y0) * gradient[2]
 
-    local gradient = NOISEMAP.randomGradient(x0, y1, MINIMUM_NOISE_VECTOR_VALUE, MAXIMUM_NOISE_VECTOR_VALUE, X_SEED, Y_SEED, OFFSET_SEED)
+    local gradient = NoiseMap.randomGradient(x0, y1, MINIMUM_NOISE_VECTOR_VALUE, MAXIMUM_NOISE_VECTOR_VALUE, X_SEED, Y_SEED, OFFSET_SEED)
     local n01 = (scaledX - x0) * gradient[1] + (scaledY - y1) * gradient[2]
 
-    local gradient = NOISEMAP.randomGradient(x1, y1, MINIMUM_NOISE_VECTOR_VALUE, MAXIMUM_NOISE_VECTOR_VALUE, X_SEED, Y_SEED, OFFSET_SEED)
+    local gradient = NoiseMap.randomGradient(x1, y1, MINIMUM_NOISE_VECTOR_VALUE, MAXIMUM_NOISE_VECTOR_VALUE, X_SEED, Y_SEED, OFFSET_SEED)
     local n11 = (scaledX - x1) * gradient[1] + (scaledY - y1) * gradient[2]
 
     -- Interpolate noise values
@@ -90,3 +89,4 @@ NOISEMAP.getNoiseValue = function(
     return (value + 1) / 2
 end
 
+return NoiseMap

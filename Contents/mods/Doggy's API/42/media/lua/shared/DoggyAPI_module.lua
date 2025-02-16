@@ -11,12 +11,6 @@ Module of DoggyAPI
 ]]--
 --[[ ================================================ ]]--
 
-local DoggyAPI = {
-    MODDATA = {},
-    NOISEMAP = {},
-    EVENTS = {},
-    WORLD = {},
-    FINDERS = {},
-}
+local DoggyAPI = {}
 
 return DoggyAPI

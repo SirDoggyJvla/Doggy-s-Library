@@ -12,8 +12,7 @@ Various tools used to check for stuff.
 --[[ ================================================ ]]--
 
 ---requirements
-local DoggyAPI = require "DoggyAPI_module"
-local FINDERS = DoggyAPI.FINDERS
+local FindersTools = {}
 
 ---functions
 local getSquare = getSquare
@@ -28,7 +27,7 @@ local getSquare = getSquare
 ---@param radius integer
 ---@param directions table|nil
 ---@return any
-FINDERS.CacheCircleOutwardDirections = function(radius,directions)
+FindersTools.GetCircleOutwardDirections = function(radius,directions)
 	-- create a direction table if doesn't exist already
 	directions = directions or table.newarray()
 
@@ -64,7 +63,8 @@ FINDERS.CacheCircleOutwardDirections = function(radius,directions)
 	return directions
 end
 
-FINDERS.CIRCULAR_OUTWARD_DIRECTIONS = FINDERS.CacheCircleOutwardDirections(75)
+--- cache in default circle directions radius
+FindersTools.CIRCULAR_OUTWARD_DIRECTIONS = FindersTools.GetCircleOutwardDirections(75)
 
 
 
@@ -82,7 +82,7 @@ FINDERS.CIRCULAR_OUTWARD_DIRECTIONS = FINDERS.CacheCircleOutwardDirections(75)
 ---@param isValid function
 ---@return IsoGridSquare|nil
 ---@return number|nil
-FINDERS.FindNearestValidSquare = function(startX, startY , min_radius, max_radius, min_h, max_h, directions, isValid)
+FindersTools.FindNearestValidSquare = function(startX, startY , min_radius, max_radius, min_h, max_h, directions, isValid)
 	-- iterate through every directions, starting at the nearest circle
 	for r = min_radius,max_radius do
 		-- retrieve directions
@@ -116,3 +116,5 @@ FINDERS.FindNearestValidSquare = function(startX, startY , min_radius, max_radiu
 	-- no squares found
 	return nil, nil
 end
+
+return FindersTools

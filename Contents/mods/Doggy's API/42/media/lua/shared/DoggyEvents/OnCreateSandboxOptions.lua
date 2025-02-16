@@ -6,14 +6,23 @@
 --[[ ================================================ ]]--
 --[[
 
-Custom event which is used to detect whenever a new chunk is loaded.
-
-Connected to LoadChunk event and simply identifies newly loaded chunks.
+Custom event which triggers every time 
 
 ]]--
 --[[ ================================================ ]]--
 
-local LuaEvent = require "Starlit/LuaEvent"
-local DoggyAPI = require "DoggyAPI_module"
-DoggyAPI.EVENTS.LoadNewChunk = LuaEvent.new()
 
+-- create new event
+local LuaEvent = require "Starlit/LuaEvent"
+local OnCreateSandboxOptions = {
+    events = {},
+}
+
+function OnCreateSandboxOptions.addListener(pageName, func)
+    -- if initialisation order is an issue you could create the event here if it doesn't exist
+    OnCreateSandboxOptions.events[pageName] = OnCreateSandboxOptions.events[pageName] or LuaEvent.new()
+    OnCreateSandboxOptions.events[pageName]:addListener(func)
+end
+
+
+return OnCreateSandboxOptions

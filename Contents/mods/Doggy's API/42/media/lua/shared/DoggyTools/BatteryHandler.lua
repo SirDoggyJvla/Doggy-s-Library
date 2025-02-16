@@ -30,7 +30,7 @@ local ISRemoveBattery = require "DoggyTimedActions/ISRemoveBattery"
 ---@return boolean|nil
 BatteryHandler.AddBatteryItem = function(itemFullType)
     if not itemFullType or type(itemFullType) ~= "string" then
-        print("BatteryHandler.AddBatteryItem: wrong item full type given (string expected, got "..type(itemFullType)..")")
+        error("BatteryHandler.AddBatteryItem - wrong item full type given (string expected, got "..type(itemFullType)..")",1)
         return nil
     end
 
