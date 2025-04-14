@@ -28,7 +28,9 @@ end
 
 ---Used to get a persistent identification coordinates of a building.
 ---@param buildingDef BuildingDef
----@return [integer, integer, integer]
+---@return integer
+---@return integer
+---@return integer
 WorldTools.getBuildingInfo = function(buildingDef)
     -- get a X and Y coordinate
     local x_bID = buildingDef:getX()
@@ -38,7 +40,7 @@ WorldTools.getBuildingInfo = function(buildingDef)
     local firstRoom = buildingDef:getFirstRoom()
     local z_bID = firstRoom and firstRoom:getZ() or 0
 
-    return {x=x_bID,y=y_bID,z=z_bID}
+    return x_bID,y_bID,z_bID
 end
 
 ---Used to get a persistent identification of a building.

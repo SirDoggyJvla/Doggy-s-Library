@@ -51,7 +51,7 @@ function ISInsertBattery:perform()
 	ISBaseTimedAction.perform(self)
 end
 
-function ISInsertBattery:new (character,item,battery,inventory,time)
+function ISInsertBattery:new(character,item,battery,inventory,time)
 	local o = {}
 	setmetatable(o, self)
 	self.__index = self

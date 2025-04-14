@@ -48,16 +48,16 @@ end
 ---@param item InventoryItem
 ---@return boolean
 BatteryHandler.isBattery = function(item)
-	return item:getType() == "Battery" and item:getCurrentUsesFloat() ~= 0
+	return item:getType() == "Battery" and item:getCurrentUsesFloat() > 0
 end
 
----When right clicking the item, show options to add or remove battery and scan yourself.
+---When right clicking the item, show options to add or remove battery.
 ---@param playerIndex integer
 ---@param context table
 ---@param items table
 BatteryHandler.OnFillInventoryObjectContextMenu = function(playerIndex, context, items)
     -- skip if no battery item
-    if BatteryHandler.BatteryItemsCount == 0 then return end
+    if BatteryHandler.BatteryItemsCount <= 0 then return end
 
 	-- retrieve player
 	local player = getSpecificPlayer(playerIndex)
@@ -111,7 +111,7 @@ BatteryHandler.OnFillInventoryObjectContextMenu = function(playerIndex, context,
 
         -- add option to remove the battery if present
         if charged then
-            local option = context:addOption(getText("ContextMenu_DoggyAPI_RemoveBattery"), player, BatteryHandler.RemoveBattery, item, inventory)
+            context:addOption(getText("ContextMenu_DoggyAPI_RemoveBattery"), player, BatteryHandler.RemoveBattery, item, inventory)
         end
 
         --- ONLY ADD OPTIONS FOR A SINGLE BATTERY ITEM TO NOT BLOAT CONTEXT MENU ---

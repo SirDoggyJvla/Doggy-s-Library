@@ -32,7 +32,7 @@ local UI_BORDER_SPACING = 10
 
 
 ---Retrieves the total 
----@param panel any
+---@param panel SandboxOptionsScreenPanel
 CustomizeSandboxOptionPanel.GetTotalOptionDimensions = function(panel)
     -- get y
     local titles = panel.titles
@@ -78,7 +78,7 @@ end
 --[[ ================================================ ]]--
 
 ---Sets the color of the panel.
----@param panel SandboxOptionPanel
+---@param panel SandboxOptionsScreenPanel
 ---@param borderColor BaseColor
 ---@param backgroundColor BaseColor
 CustomizeSandboxOptionPanel.SetPanelColor = function(panel, borderColor, backgroundColor)
@@ -89,8 +89,11 @@ CustomizeSandboxOptionPanel.SetPanelColor = function(panel, borderColor, backgro
     panel.backgroundColor = backgroundColor or panel.backgroundColor
 end
 
-CustomizeSandboxOptionPanel.SetScrollBarHeight = function(panel,y)
-    panel:setScrollHeight(y)
+---Sets the height of the scroll bar. Usually based on the lowest point reached by entries in the panel.
+---@param panel SandboxOptionsScreenPanel
+---@param height integer
+CustomizeSandboxOptionPanel.SetScrollBarHeight = function(panel,height)
+    panel:setScrollHeight(height)
 end
 
 
