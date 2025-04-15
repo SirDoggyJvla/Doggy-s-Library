@@ -30,24 +30,24 @@ local math = math
 --[[ ================================================ ]]--
 
 
-local addMarker = function(x,y,z,text,r,g,b,a,y_offset)
-	text = tostring(text)
+-- local addMarker = function(x,y,z,text,r,g,b,a,y_offset)
+-- 	text = tostring(text)
 
-	local nametag = TextDrawObject.new()
-	nametag:ReadString(UIFont.Small, text, -1)
+-- 	local nametag = TextDrawObject.new()
+-- 	nametag:ReadString(UIFont.Small, text, -1)
 
-	table.insert(UniqueMarker, {
-		x = x,
-		y = y,
-		z = z,
-		nametag = nametag,
-		r = r or 1,
-		g = g or 0,
-		b = b or 0,
-		a = a or 1,
-		y_offset = y_offset or 0,
-	})
-end
+-- 	table.insert(UniqueMarker, {
+-- 		x = x,
+-- 		y = y,
+-- 		z = z,
+-- 		nametag = nametag,
+-- 		r = r or 1,
+-- 		g = g or 0,
+-- 		b = b or 0,
+-- 		a = a or 1,
+-- 		y_offset = y_offset or 0,
+-- 	})
+-- end
 
 ---Casts a 2D ray from a starting point in a specified direction and returns the squares it intersects with until it hits an object.
 ---@param startPoint table -- Starting point of the ray (x, y, z)
@@ -137,7 +137,7 @@ RayCasting._CheckForIntersectedObject = function(objects,startPoint,farPoint,_ig
 			local objectPoint1 = {x = object:getX(), y = object:getY() + segment.y_offset}
 			local objectPoint2 = {x = object:getX() + segment[1], y = object:getY() + segment[2] + segment.y_offset}
 
-			intersectionPoint = Geometry.FindIntersectPoint(startPoint, farPoint, objectPoint1, objectPoint2, 0.05)
+			local intersectionPoint = Geometry.FindIntersectPoint(startPoint, farPoint, objectPoint1, objectPoint2, 0.05)
             if not intersectionPoint then break end
 
             -- verify intersection point is closer to the start point
