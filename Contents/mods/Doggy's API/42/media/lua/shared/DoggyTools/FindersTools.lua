@@ -14,8 +14,13 @@ Various tools used to check for stuff.
 ---requirements
 local FindersTools = {}
 
----functions
+--tools
+local Geometry = require("DoggyTools/Geometry")
+
+--functions
 local getSquare = getSquare
+local table = table
+local math = math
 
 
 
@@ -195,76 +200,7 @@ local addSquareMarker = function(square,text)
 	SquareNametags[square] = nametag
 end
 
-local findIntersectPoint = function(point1, point2, point3, point4)
-	local x1, y1 = point1.x, point1.y
-	local x2, y2 = point2.x, point2.y
-	local x3, y3 = point3.x, point3.y
-	local x4, y4 = point4.x, point4.y
 
-	-- addMarker(x1, y1, 0, "A", 1, 0, 0, 1)
-	-- addMarker(x2, y2, 0, "B", 0, 1, 0, 1)
-	-- addMarker(x3, y3, 0, "C", 1, 1, 0, 1, 0)
-	-- addMarker(x4, y4, 0, "D", 1, 0, 1, 1, 10)
-
-	-- table.insert(DrawingLines, {
-	-- 	vector = Vector2.new(x2-x1, y2-y1),
-	-- 	length = 1,
-	-- 	r = 0,
-	-- 	g = 1,
-	-- 	b = 0,
-	-- 	x = x1,
-	-- 	y = y1,
-	-- })
-
-	local denom = (x2 - x1) * (y4 - y3) - (y2 - y1) * (x4 - x3)
-	if denom == 0 then
-		return false -- lines are parallel or coincident
-	end
-
-	local P_x = ( (x1*y2 - y1*x2)*(x3-x4) - (x1-x2)*(x3*y4 - y3*x4) )/denom
-	local P_y = ( (x1*y2 - y1*x2)*(y3-y4) - (y1-y2)*(x3*y4 - y3*x4) )/denom
-
-	local extra = 0.05
-
-	-- Check if P_x, P_y lies between point3 and point4
-	local minX, maxX = math.min(x3, x4), math.max(x3, x4)
-	local minY, maxY = math.min(y3, y4), math.max(y3, y4)
-
-	if minX ~= maxX then
-		minX = minX - extra
-		maxX = maxX + extra
-	end
-	if minY ~= maxY then
-		minY = minY - extra
-		maxY = maxY + extra
-	end
-
-	-- addMarker(minX, minY, 0, "minX", 1, 0, 0, 1, 40)
-	-- addMarker(maxX, minY, 0, "maxX", 1, 0, 0, 1, 30)
-
-	local check = P_x < minX or P_x > maxX or P_y < minY or P_y > maxY
-
-	if check then
-		return false -- intersection point is not within the segment
-	end
-
-	addMarker(P_x, P_y, 0, "X", 1, 0, 1, 1, 10)
-
-	-- table.insert(DrawingLines, {
-	-- 	vector = Vector2.new(P_x - x1, P_y - y1),
-	-- 	length = 1,
-	-- 	r = 1,
-	-- 	g = 0,
-	-- 	b = 0,
-	-- 	x = x1,
-	-- 	y = y1,
-	-- })
-
-	-- Calculate distance between point1 and P
-	local distance = math.sqrt((P_x - x1)^2 + (P_y - y1)^2)
-
-	return true, distance
-end
 
 FindersTools.GetWallType = function(spriteProperties)
 	if spriteProperties:Is("WallN") then
@@ -284,7 +220,7 @@ FindersTools.GetWallType = function(spriteProperties)
 	return false
 end
 
-FindersTools._DefaultProperties = {
+FindersTools._DefaultSegments = {
 	["WallN"] = {
 		{1,0,y_offset = 0},
 	},
@@ -295,12 +231,9 @@ FindersTools._DefaultProperties = {
 		{1,0,y_offset = 0},
 		{0,-1,y_offset = 1},
 	},
-	["DoorSound"] = {
-
-	}
 }
 
-FindersTools._WallTypeToStructureType = {
+FindersTools._ObjectTypeToStructureType = {
 	["WallN"] = "Wall",
 	["WallW"] = "Wall",
 	["WallNW"] = "Wall",
@@ -309,7 +242,7 @@ FindersTools._WallTypeToStructureType = {
 	["WindowW"] = "Window",
 }
 
-FindersTools.GetWallSegments = function(object)
+FindersTools.GetObjectSegments = function(object)
 	local sprite = object:getSprite()
 	if not sprite then return end
 
@@ -319,7 +252,7 @@ FindersTools.GetWallSegments = function(object)
 	local wallType = FindersTools.GetWallType(properties)
 	if not wallType then return end
 
-	local structureType = FindersTools._WallTypeToStructureType[wallType]
+	local structureType = FindersTools._ObjectTypeToStructureType[wallType]
 
 	local segments = {
 		wallType=wallType,
@@ -327,21 +260,23 @@ FindersTools.GetWallSegments = function(object)
 	}
 
 	if structureType == "Wall" then
-		local defaultProperties = FindersTools._DefaultProperties[wallType]
+		local defaultProperties = FindersTools._DefaultSegments[wallType]
 		for i = 1, #defaultProperties do
 			table.insert(segments, defaultProperties[i])
 		end
+
 	elseif structureType == "Door" then
 		local curtains = object:HasCurtains()
 		local canSeeThrough = object:IsOpen() or properties:Is("doorTrans") and not curtains or curtains and curtains:isCurtainOpen() or false
 
 		if not canSeeThrough then
 			local wallType = object:getNorth() and "WallN" or "WallW"
-			local defaultProperties = FindersTools._DefaultProperties[wallType]
+			local defaultProperties = FindersTools._DefaultSegments[wallType]
 			for i = 1, #defaultProperties do
 				table.insert(segments, defaultProperties[i])
 			end
 		end
+
 	elseif structureType == "Window" then
 		local canSeeThrough
 
@@ -357,7 +292,7 @@ FindersTools.GetWallSegments = function(object)
 
 		if not canSeeThrough then
 			local wallType = object:getNorth() and "WallN" or "WallW"
-			local defaultProperties = FindersTools._DefaultProperties[wallType]
+			local defaultProperties = FindersTools._DefaultSegments[wallType]
 			for i = 1, #defaultProperties do
 				table.insert(segments, defaultProperties[i])
 			end
@@ -367,64 +302,29 @@ FindersTools.GetWallSegments = function(object)
 	return segments
 end
 
-FindersTools._CheckForIntersectedWall = function(objects,point,farPoint,vectorBeam,ignoredObjects)
-	local closestWall, currentSegments
-	local shortestDistance = 9999999
-
-	for i = 0, objects:size() - 1 do repeat
-		local object = objects:get(i)
-		if ignoredObjects and ignoredObjects[object] then break end
-
-		local sprite = object:getSprite()
-		if not sprite then break end
-
-		local properties = sprite:getProperties()
-		if not properties then break end
-
-		-- get segments of object
-		local segments = FindersTools.GetWallSegments(object)
-		if not segments then break end
-
-		for j = 1, #segments do
-			local segment = segments[j]
-
-			local wallPoint1 = {x = object:getX(), y = object:getY() + segment.y_offset}
-			local wallPoint2 = {x = object:getX() + segment[1], y = object:getY() + segment[2] + segment.y_offset}
-
-			local intersect, distance = findIntersectPoint(point, farPoint, wallPoint1, wallPoint2)
-
-			if intersect and distance and distance < shortestDistance then
-				shortestDistance = distance
-				local wallVector = Vector2.new(segment[1], segment[2])
-				segments.impactAngle = wallVector:angleTo(vectorBeam)
-
-				closestWall = object
-				currentSegments = segments
-			end
-		end
-	until true end
-
-	return closestWall, currentSegments
-end
-
 FindersTools.CastVisionRay = function(point, vectorBeam, maxBeamLength, ignoredObjects)
 	local squares = {}
 	local x1, y1, z = point.x, point.y, point.z
 
 	local longVector = Vector2.new(vectorBeam):setLength(maxBeamLength)
 	local farPoint = {x = x1 + longVector:getX(), y = y1 + longVector:getY()}
-	vectorBeam:setLength(0.01) -- for some reasons works better with a short length
+	local deltaLength = 0.01
+	vectorBeam:setLength(deltaLength) -- for some reasons works better with a short length
 
-	addMarker(x1, y1, 0, "X", 1, 0, 0, 1)
+	-- addMarker(x1, y1, 0, "X", 1, 0, 0, 1)
 
 	local object, previousSquare, segments
 
 	local x2 = x1
 	local y2 = y1
 
-	while maxBeamLength > 0 and not object do
+	while maxBeamLength > 0 and not object do repeat
 		local square = getSquare(x2, y2, z)
-		if squares[square] then break end -- square was already identified as intersect wall
+		x1, y1 = x2, y2
+		x2 = x1 + vectorBeam:getX()
+		y2 = y1 + vectorBeam:getY()
+		maxBeamLength = maxBeamLength - deltaLength
+		if squares[square] then break end -- square was already identified as intersect wall so don't check it anymore
 
 		if square then
 			-- check first type of objects
@@ -448,16 +348,11 @@ FindersTools.CastVisionRay = function(point, vectorBeam, maxBeamLength, ignoredO
 			end
 
 			-- else it's just a normal square, not a wall
-			squares[square] = false
-			previousSquare = previousSquare ~= square and square or square
+			squares[square] = true
+			previousSquare = square
 		end
 
-		x1, y1 = x2, y2
-		x2 = x1 + vectorBeam:getX()
-		y2 = y1 + vectorBeam:getY()
-
-		maxBeamLength = maxBeamLength - vectorBeam:getLength()
-	end
+	until true end
 
 	return squares
 end
