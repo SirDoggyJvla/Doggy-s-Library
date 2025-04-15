@@ -87,24 +87,6 @@ end
 --- OBJECT GEOMETRIES ---
 --[[ ================================================ ]]--
 
-FindersTools.GetWallType = function(spriteProperties)
-	if spriteProperties:Is("WallN") then
-		return "WallN"
-	elseif spriteProperties:Is("WallW") then
-		return "WallW"
-	elseif spriteProperties:Is("WallNW") then
-		return "WallNW"
-	elseif spriteProperties:Is("DoorSound") then
-		return "DoorSound"
-	elseif spriteProperties:Is("WindowN") then
-		return "WindowN"
-	elseif spriteProperties:Is("WindowW") then
-		return "WindowW"
-	end
-
-	return false
-end
-
 Geometry._PropertyToSegments = {
 	["WallN"] = {
 		{1,0,y_offset = 0},
@@ -116,6 +98,18 @@ Geometry._PropertyToSegments = {
 		{1,0,y_offset = 0},
 		{0,-1,y_offset = 1},
 	},
+    ["WindowN"] = {
+		{1,0,y_offset = 0},
+	},
+	["WindowW"] = {
+		{0,-1,y_offset = 1},
+	},
+    ["DoorN"] = {
+		{1,0,y_offset = 0},
+	},
+	["DoorW"] = {
+		{0,-1,y_offset = 1},
+	},
 }
 
 
@@ -125,65 +119,6 @@ Geometry.GetObjectSegments = function(object)
 
     return Geometry._PropertyToSegments[objectProperty]
 end
-
-Geometry.GetObjectSegments = function(object)
-	local sprite = object:getSprite()
-	if not sprite then return end
-
-	local properties = sprite:getProperties()
-	if not properties then return end
-
-	local wallType = FindersTools.GetWallType(properties)
-	if not wallType then return end
-
-	local structureType = FindersTools._ObjectTypeToStructureType[wallType]
-
-	local segments = {
-		wallType=wallType,
-		structureType = structureType,
-	}
-
-	if structureType == "Wall" then
-		local defaultProperties = FindersTools._DefaultProperties[wallType]
-		for i = 1, #defaultProperties do
-			table.insert(segments, defaultProperties[i])
-		end
-	elseif structureType == "Door" then
-		local curtains = object:HasCurtains()
-		local canSeeThrough = object:IsOpen() or properties:Is("doorTrans") and not curtains or curtains and curtains:isCurtainOpen() or false
-
-		if not canSeeThrough then
-			local wallType = object:getNorth() and "WallN" or "WallW"
-			local defaultProperties = Geometry._DefaultProperties[wallType]
-			for i = 1, #defaultProperties do
-				table.insert(segments, defaultProperties[i])
-			end
-		end
-	elseif structureType == "Window" then
-		local canSeeThrough
-
-		local barricade1 = object:getBarricadeOnSameSquare()
-		local barricade2 = object:getBarricadeOnOppositeSquare()
-
-		if barricade1 and barricade1:isBlockVision() or barricade2 and barricade2:isBlockVision() then
-			canSeeThrough = false
-		else
-			local curtains = object:HasCurtains()
-			canSeeThrough = not curtains or curtains:IsOpen()
-		end
-
-		if not canSeeThrough then
-			local wallType = object:getNorth() and "WallN" or "WallW"
-			local defaultProperties = FindersTools._DefaultProperties[wallType]
-			for i = 1, #defaultProperties do
-				table.insert(segments, defaultProperties[i])
-			end
-		end
-	end
-
-	return segments
-end
-
 
 
 return Geometry

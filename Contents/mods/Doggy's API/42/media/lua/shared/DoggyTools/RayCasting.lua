@@ -20,7 +20,6 @@ local WorldTools = require("DoggyTools/WorldTools")
 
 --functions
 local getSquare = getSquare
-local table = table
 local math = math
 
 
@@ -30,6 +29,25 @@ local math = math
 --- RAY CASTING ---
 --[[ ================================================ ]]--
 
+
+local addMarker = function(x,y,z,text,r,g,b,a,y_offset)
+	text = tostring(text)
+
+	local nametag = TextDrawObject.new()
+	nametag:ReadString(UIFont.Small, text, -1)
+
+	table.insert(UniqueMarker, {
+		x = x,
+		y = y,
+		z = z,
+		nametag = nametag,
+		r = r or 1,
+		g = g or 0,
+		b = b or 0,
+		a = a or 1,
+		y_offset = y_offset or 0,
+	})
+end
 
 ---Casts a 2D ray from a starting point in a specified direction and returns the squares it intersects with until it hits an object.
 ---@param startPoint table -- Starting point of the ray (x, y, z)
@@ -69,14 +87,17 @@ RayCasting.CastRay2D = function(startPoint, vectorBeam, _ignoredObjects)
 
         -- verify that the ray intersected and object
         if intersectObject and wallVector then
-            local wallSquare = wallVector:angleTo(vectorBeam) >= 0 and previousSquare or square
+            local angle = wallVector:getDirection() - vectorBeam:getDirection()
+            local wallSquare = angle < 0 and previousSquare or square
+
+            -- local wallSquare = wallVector:angleTo(vectorBeam) >= -math.pi/2 and square or previousSquare
             squares[wallSquare] = intersectObject
             return squares
         end
 
         -- else this is a normal square without any object blocking the ray
         squares[square] = true
-        previousSquare = previousSquare ~= square and previousSquare or square
+        previousSquare = previousSquare ~= square and square or previousSquare
         until true
 
         -- update next ray position
@@ -103,9 +124,10 @@ RayCasting._CheckForIntersectedObject = function(objects,startPoint,farPoint,_ig
 		if _ignoredObjects and _ignoredObjects[object] then break end
 
         local canSeeThrough, objectProperty = WorldTools.CanSeeThrough(object)
-        if canSeeThrough then return end -- skip as object won't block ray
-    
+        if canSeeThrough then break end -- skip as object won't block ray
+
         local segments = Geometry._PropertyToSegments[objectProperty]
+        if not segments then break end
 
         -- check each segments of the object
 		for j = 1, #segments do repeat
@@ -115,7 +137,7 @@ RayCasting._CheckForIntersectedObject = function(objects,startPoint,farPoint,_ig
 			local objectPoint1 = {x = object:getX(), y = object:getY() + segment.y_offset}
 			local objectPoint2 = {x = object:getX() + segment[1], y = object:getY() + segment[2] + segment.y_offset}
 
-			local intersectionPoint = Geometry.FindIntersectPoint(startPoint, farPoint, objectPoint1, objectPoint2, 0.05)
+			intersectionPoint = Geometry.FindIntersectPoint(startPoint, farPoint, objectPoint1, objectPoint2, 0.05)
             if not intersectionPoint then break end
 
             -- verify intersection point is closer to the start point
@@ -134,3 +156,4 @@ end
 
 
 
+return RayCasting

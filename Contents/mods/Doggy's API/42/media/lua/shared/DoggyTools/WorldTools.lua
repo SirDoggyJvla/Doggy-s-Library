@@ -91,7 +91,7 @@ WorldTools.GetObjectType = function(spriteProperties)
 	return false
 end
 
----
+---Checks if the object can be seen through
 ---@param object IsoObject
 ---@return boolean
 ---@return string|nil
@@ -106,7 +106,6 @@ WorldTools.CanSeeThrough = function(object)
     if not objectProperty then return true end -- needs to be true as object is not valid
 
     local structureType = WorldTools._PropertyToStructureType[objectProperty]
-    if not structureType then return false, objectProperty end
 
     if structureType == "Wall" then
         return false, objectProperty
@@ -127,7 +126,7 @@ WorldTools.CanSeeThrough = function(object)
         ---@cast object IsoDoor
 
         -- check open
-        if object:IsOpen() then return true end
+        if object:IsOpen() then return true, objectProperty end
 
         -- check for barricades
 		local barricade1 = object:getBarricadeOnSameSquare()
@@ -142,6 +141,8 @@ WorldTools.CanSeeThrough = function(object)
             local curtains = object:HasCurtains() ---@as IsoCurtain
             return not curtains or curtains:isCurtainOpen(), objectProperty -- TODO: might be wrong for IsoThumpable
         end
+
+        objectProperty = object:getNorth() and "DoorN" or "DoorW"
 
 		return false, objectProperty
     end
