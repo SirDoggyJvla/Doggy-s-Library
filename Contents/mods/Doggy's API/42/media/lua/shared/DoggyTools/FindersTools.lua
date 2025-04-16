@@ -14,9 +14,6 @@ Various tools used to check for stuff.
 ---requirements
 local FindersTools = {}
 
---tools
-local Geometry = require("DoggyTools/Geometry")
-
 --functions
 local getSquare = getSquare
 local table = table
@@ -164,40 +161,5 @@ FindersTools.getZombiesInRadius = function(player,coordinates,radius)
 end
 
 
-
-
---[[ ================================================ ]]--
---- RAY CASTING ---
---[[ ================================================ ]]--
-
-
-local addMarker = function(x,y,z,text,r,g,b,a,y_offset)
-	text = tostring(text)
-
-	local nametag = TextDrawObject.new()
-	nametag:ReadString(UIFont.Small, text, -1)
-
-	table.insert(UniqueMarker, {
-		x = x,
-		y = y,
-		z = z,
-		nametag = nametag,
-		r = r or 1,
-		g = g or 0,
-		b = b or 0,
-		a = a or 1,
-		y_offset = y_offset or 0,
-	})
-end
-
-local addSquareMarker = function(square,text)
-	if SquareNametags[square] then return end
-	text = tostring(text)
-
-	local nametag = TextDrawObject.new()
-	nametag:ReadString(UIFont.Small, text, -1)
-
-	SquareNametags[square] = nametag
-end
 
 return FindersTools

@@ -16,9 +16,14 @@ local Geometry = {}
 
 --tools
 local WorldTools = require("DoggyTools/WorldTools")
+local Booleans = require("DoggyTools/Booleans")
+local bools = Booleans.bools
+local VisualMarkers = require("DoggyDebugTools/VisualMarkers")
 
 --functions
 local math = math
+local math_min = math.min
+local math_max = math.max
 
 
 
@@ -39,10 +44,10 @@ Geometry.FindIntersectPoint = function(pointA, pointB, pointC, pointD, errorMarg
 	local x3, y3 = pointC.x, pointC.y
 	local x4, y4 = pointD.x, pointD.y
 
-	-- addMarker(x1, y1, 0, "A", 1, 0, 0, 1)
-	-- addMarker(x2, y2, 0, "B", 0, 1, 0, 1)
-	-- addMarker(x3, y3, 0, "C", 1, 1, 0, 1, 0)
-	-- addMarker(x4, y4, 0, "D", 1, 0, 1, 1, 10)
+	-- VisualMarkers.AddMarker(x1, y1, 0, "A", 1, 0, 0, 1)
+	-- VisualMarkers.AddMarker(x2, y2, 0, "B", 0, 1, 0, 1)
+	-- VisualMarkers.AddMarker(x3, y3, 0, "C", 1, 1, 0, 1, 0)
+	-- VisualMarkers.AddMarker(x4, y4, 0, "D", 1, 0, 1, 1, 10)
 
 	local denom = (x2 - x1) * (y4 - y3) - (y2 - y1) * (x4 - x3)
 	if denom == 0 then
@@ -52,11 +57,9 @@ Geometry.FindIntersectPoint = function(pointA, pointB, pointC, pointD, errorMarg
 	local Px = ( (x1*y2 - y1*x2)*(x3-x4) - (x1-x2)*(x3*y4 - y3*x4) )/denom
 	local Py = ( (x1*y2 - y1*x2)*(y3-y4) - (y1-y2)*(x3*y4 - y3*x4) )/denom
 
-	-- errorMargin = 0.05
-
 	-- Check if P_x, P_y lies between pointC and pointD
-	local minX, maxX = math.min(x3, x4), math.max(x3, x4)
-	local minY, maxY = math.min(y3, y4), math.max(y3, y4)
+	local minX, maxX = math_min(x3, x4), math_max(x3, x4)
+	local minY, maxY = math_min(y3, y4), math_max(y3, y4)
 
     -- Add error margin and consider if segment is not axis-aligned
 	if minX ~= maxX then
@@ -68,15 +71,15 @@ Geometry.FindIntersectPoint = function(pointA, pointB, pointC, pointD, errorMarg
 		maxY = maxY + errorMargin
 	end
 
-	-- addMarker(minX, minY, 0, "minX", 1, 0, 0, 1, 40)
-	-- addMarker(maxX, minY, 0, "maxX", 1, 0, 0, 1, 30)
+	-- VisualMarkers.AddMarker(minX, minY, 0, "minX", 1, 0, 0, 1, 40)
+	-- VisualMarkers.AddMarker(maxX, minY, 0, "maxX", 1, 0, 0, 1, 30)
 
     -- Verify the two segments intersect
 	if Px < minX or Px > maxX or Py < minY or Py > maxY then
 		return false -- intersection point is not within the segment
 	end
 
-	-- addMarker(Px, Py, 0, "X", 1, 0, 1, 1, 10)
+	-- VisualMarkers.AddMarker(Px, Py, 0, "X", 1, 0, 1, 1, 10)
 
 	return {x=Px,y=Py}
 end

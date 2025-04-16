@@ -17,6 +17,7 @@ local RayCasting = {}
 --tools
 local Geometry = require("DoggyTools/Geometry")
 local WorldTools = require("DoggyTools/WorldTools")
+local VisualMarkers = require "DoggyDebugTools/VisualMarkers"
 
 --functions
 local getSquare = getSquare
@@ -30,30 +31,14 @@ local math = math
 --[[ ================================================ ]]--
 
 
--- local addMarker = function(x,y,z,text,r,g,b,a,y_offset)
--- 	text = tostring(text)
-
--- 	local nametag = TextDrawObject.new()
--- 	nametag:ReadString(UIFont.Small, text, -1)
-
--- 	table.insert(UniqueMarker, {
--- 		x = x,
--- 		y = y,
--- 		z = z,
--- 		nametag = nametag,
--- 		r = r or 1,
--- 		g = g or 0,
--- 		b = b or 0,
--- 		a = a or 1,
--- 		y_offset = y_offset or 0,
--- 	})
--- end
-
 ---Casts a 2D ray from a starting point in a specified direction and returns the squares it intersects with until it hits an object.
 ---@param startPoint table -- Starting point of the ray (x, y, z)
 ---@param vectorBeam Vector2 -- Direction and length vector of the ray
 ---@param _ignoredObjects table|nil -- List of objects to ignore during the ray casting
 RayCasting.CastRay2D = function(startPoint, vectorBeam, _ignoredObjects)
+    -- VisualMarkers.ResetMarkers()
+    -- VisualMarkers.ResetHighlightSquares()
+
     -- initialize vectors and values used in casting the ray
     local beamLength = vectorBeam:getLength()
     local x1, y1, z = startPoint.x, startPoint.y, startPoint.z
@@ -92,11 +77,13 @@ RayCasting.CastRay2D = function(startPoint, vectorBeam, _ignoredObjects)
 
             -- local wallSquare = wallVector:angleTo(vectorBeam) >= -math.pi/2 and square or previousSquare
             squares[wallSquare] = intersectObject
+            -- VisualMarkers.AddHighlightSquare(wallSquare, {r = 1, g = 1, b = 0, a = 0.5}, 20)
             return squares
         end
 
         -- else this is a normal square without any object blocking the ray
         squares[square] = true
+        -- VisualMarkers.AddHighlightSquare(square, {r = 1, g = 0, b = 0, a = 0.5}, 10)
         previousSquare = previousSquare ~= square and square or previousSquare
         until true
 
@@ -118,6 +105,7 @@ RayCasting._CheckForIntersectedObject = function(objects,startPoint,farPoint,_ig
 	local closestWall, wallSegment
 	local _shortestDistance = 9999999
 
+    -- local finalPoint
     -- Check for each objects
 	for i = 0, objects:size() - 1 do repeat
 		local object = objects:get(i)
@@ -145,11 +133,16 @@ RayCasting._CheckForIntersectedObject = function(objects,startPoint,farPoint,_ig
             if distance < _shortestDistance then
                 _shortestDistance = distance
 
+                -- finalPoint = intersectionPoint
                 wallSegment = segment
                 closestWall = object
             end
 		until true end
 	until true end
+
+    -- if finalPoint then
+    --     VisualMarkers.AddMarker(finalPoint.x, finalPoint.y, closestWall:getZ(), "X", 1, 0, 1, 1, 10)
+    -- end
 
 	return closestWall, wallSegment and Vector2.new(wallSegment[1], wallSegment[2])
 end
