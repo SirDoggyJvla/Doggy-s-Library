@@ -1,6 +1,32 @@
 version=1
 id=3428272880
 title=Doggy's API
-description=Temp
+description=[h1]What does this mod do ?[/h1]
+description=This mod is a framework developped for myself and other modders.
+description=
+description=Currently, it adds:
+description=[list]
+description=[*] [url=https://github.com/SirDoggyJvla/Doggy-s-API/wiki/DoggyEvents]Custom events[/url]
+description=[*] [url=https://github.com/SirDoggyJvla/Doggy-s-API/wiki/DoggyTools]Custom tools[/url]
+description=[/list]
+description=
+description=[table]
+description=[tr]
+description=[th] Event name [/th]
+description=[th] Description [/th]
+description=[/tr]
+description=[tr]
+description=[td] LoadNewChunk[/td]
+description=[td] Fires when a chunk gets loaded in for the first time. [/td]
+description=[/tr]
+description=[tr]
+description=[td] OnCreateSandboxOptions [/td]
+description=[td] Fires whenever a sandbox option custom page gets created, usually whenever the game boots up. It allows you to hook onto the page to customize it visually, or modify it completely.[/td]
+description=[/tr]
+description=[/table]
+description=
+description=[h1]Github[/h1]
+description=Check the Github page to get more informations on what this framework does and access the wiki which describes the various tools available.
+description=[url=https://github.com/SirDoggyJvla/Doggy-s-API][img]https://raw.githubusercontent.com/SirDoggyJvla/Zomboid-Forge/main/images/Github%20banner.png[/img][/url]
 tags=Build 42;Framework;Interface;Misc
 visibility=public
