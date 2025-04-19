@@ -27,6 +27,6 @@ description=[/table]
 description=
 description=[h1]Github[/h1]
 description=Check the Github page to get more informations on what this framework does and access the wiki which describes the various tools available.
-description=[url=https://github.com/SirDoggyJvla/Doggy-s-API][img]https://raw.githubusercontent.com/SirDoggyJvla/Zomboid-Forge/main/images/Github%20banner.png[/img][/url]
+description=[url=https://github.com/SirDoggyJvla/Doggy-s-API][img]https://raw.githubusercontent.com/SirDoggyJvla/Zomboid-Forge/main/images/Github%20banner.png[/img][/url]
 tags=Build 42;Framework;Interface;Misc
 visibility=public

@@ -17,7 +17,7 @@ local RayCasting = {}
 --tools
 local Geometry = require("DoggyTools/Geometry")
 local WorldTools = require("DoggyTools/WorldTools")
-local VisualMarkers = require "DoggyDebugTools/VisualMarkers"
+-- local VisualMarkers = require "DoggyDebugTools/VisualMarkers"
 
 --functions
 local getSquare = getSquare
@@ -36,9 +36,6 @@ local math = math
 ---@param vectorBeam Vector2 -- Direction and length vector of the ray
 ---@param _ignoredObjects table|nil -- List of objects to ignore during the ray casting
 RayCasting.CastRay2D = function(startPoint, vectorBeam, _ignoredObjects)
-    -- VisualMarkers.ResetMarkers()
-    -- VisualMarkers.ResetHighlightSquares()
-
     -- initialize vectors and values used in casting the ray
     local beamLength = vectorBeam:getLength()
     local x1, y1, z = startPoint.x, startPoint.y, startPoint.z
