@@ -6,7 +6,11 @@
 --[[ ================================================ ]]--
 --[[
 
-Various tools used to check for stuff.
+DEPRECATED:
+    File will be deleted in the future and is currently replaced with the RayBeam2D object.
+
+
+Various tools used for RayCasting.
 
 ]]--
 --[[ ================================================ ]]--
@@ -17,7 +21,6 @@ local RayCasting = {}
 --tools
 local Geometry = require("DoggyTools/Geometry")
 local WorldTools = require("DoggyTools/WorldTools")
--- local VisualMarkers = require "DoggyDebugTools/VisualMarkers"
 
 --functions
 local getSquare = getSquare

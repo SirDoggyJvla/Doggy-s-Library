@@ -44,8 +44,8 @@ Geometry.FindIntersectPoint = function(pointA, pointB, pointC, pointD, errorMarg
 	local x3, y3 = pointC.x, pointC.y
 	local x4, y4 = pointD.x, pointD.y
 
-	-- VisualMarkers.AddMarker(x1, y1, 0, "A", 1, 0, 0, 1)
-	-- VisualMarkers.AddMarker(x2, y2, 0, "B", 0, 1, 0, 1)
+	VisualMarkers.AddMarker(x1, y1, 0, "A", 1, 0, 0, 1)
+	VisualMarkers.AddMarker(x2, y2, 0, "B", 0, 1, 0, 1)
 	-- VisualMarkers.AddMarker(x3, y3, 0, "C", 1, 1, 0, 1, 0)
 	-- VisualMarkers.AddMarker(x4, y4, 0, "D", 1, 0, 1, 1, 10)
 
