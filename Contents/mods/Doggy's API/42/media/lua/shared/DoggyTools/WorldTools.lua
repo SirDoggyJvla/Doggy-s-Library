@@ -124,7 +124,7 @@ WorldTools.CanSeeThrough = function(object)
         return not curtains or curtains:IsOpen(), objectProperty
     elseif structureType == "Door" then
         ---@cast object IsoDoor
-        
+
         objectProperty = object:getNorth() and "DoorN" or "DoorW"
 
         -- check open
@@ -150,6 +150,34 @@ WorldTools.CanSeeThrough = function(object)
     return false, objectProperty
 end
 
+WorldTools.IsWindow = function(object)
+    if instanceof(object, "IsoWindow") then
+        return true
+    elseif instanceof(object, "IsoThumpable") then
+        return object:isWindow()
+    end
+end
 
+WorldTools.IsDoor = function(object)
+    if instanceof(object,"IsoDoor") then
+        return true
+    elseif instanceof(object,"IsoThumpable") then
+        return object:isDoor()
+    end
+end
+
+WorldTools.IsWindowOrDoor = function(object)
+    return WorldTools.IsWindow(object) or WorldTools.IsDoor(object)
+end
+
+WorldTools.HasWindowOrDoor = function(square)
+    local objects = square:getObjects()
+    for i = 0, objects:size() - 1 do
+        local object = objects:get(i)
+        if WorldTools.IsWindow(object) or WorldTools.IsDoor(object) then
+            return true, object
+        end
+    end
+end
 
 return WorldTools

@@ -14,6 +14,9 @@ Various tools used to check for stuff.
 ---requirements
 local FindersTools = {}
 
+-- tools
+local VisualMarkers = require("DoggyDebugTools/VisualMarkers")
+
 --functions
 local getSquare = getSquare
 local table = table
@@ -32,7 +35,8 @@ local math = math
 ---@return any
 FindersTools.GetCircleOutwardDirections = function(radius,directions)
 	-- create a direction table if doesn't exist already
-	directions = directions or table.newarray()
+	directions = directions or {}
+	directions[0] = table.newarray({table.newarray({0,0,0})})
 
 	-- check from 1 to radius
 	local uniques = {}
@@ -85,6 +89,7 @@ FindersTools.CIRCULAR_OUTWARD_DIRECTIONS = FindersTools.GetCircleOutwardDirectio
 ---@param isValid function
 ---@return IsoGridSquare|nil
 ---@return number|nil
+---@return any|nil
 FindersTools.FindNearestValidSquare = function(startX, startY , min_radius, max_radius, min_h, max_h, directions, isValid)
 	-- iterate through every directions, starting at the nearest circle
 	for r = min_radius,max_radius do
