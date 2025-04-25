@@ -24,5 +24,4 @@ function OnCreateSandboxOptions.addListener(pageName, func)
     OnCreateSandboxOptions.events[pageName]:addListener(func)
 end
 
-
 return OnCreateSandboxOptions
