@@ -75,7 +75,7 @@ Geometry.FindIntersectPoint = function(pointA, pointB, pointC, pointD, errorMarg
 	local x4, y4 = pointD.x, pointD.y
 
 	-- VisualMarkers.AddLine(pointA, pointB, 1, 0, 0, 0.05)
-	VisualMarkers.AddLine(pointC, pointD, 1, 1, 0, 0.05)
+	-- VisualMarkers.AddLine(pointC, pointD, 1, 1, 0, 0.05)
 
 	local denom = (x2 - x1) * (y4 - y3) - (y2 - y1) * (x4 - x3)
 	if denom == 0 then
@@ -92,7 +92,7 @@ Geometry.FindIntersectPoint = function(pointA, pointB, pointC, pointD, errorMarg
 	end
 
 	-- VisualMarkers.AddLine({x=minX,y=minY,z=0}, {x=maxX,y=maxY,z=0}, 0.5, 0, 1, 0.05)
-	VisualMarkers.AddLine(pointA, {x=Px,y=Py,z=0}, 1, 0, 1, 0.05)
+	-- VisualMarkers.AddLine(pointA, {x=Px,y=Py,z=0}, 1, 0, 1, 0.05)
 
 	return {x=Px,y=Py,minX=minX,maxX=maxX,minY=minY,maxY=maxY}
 end

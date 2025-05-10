@@ -61,7 +61,7 @@ end
 
 
 --[[ ================================================ ]]--
---- SPRITES ---
+--- SPRITES PROPERTIES ---
 --[[ ================================================ ]]--
 
 WorldTools.IsoObjectType = {
@@ -138,7 +138,11 @@ WorldTools.GetObjectType = function(object, spriteProperties)
 end
 
 
----
+--[[ ================================================ ]]--
+--- OBJECT GEOMETRY ---
+--[[ ================================================ ]]--
+
+---Retrieve segments that define the 2D flat geometry of the object.
 ---@param object IsoObject|IsoDoor|IsoWindow|IsoThumpable
 ---@param propertyToSegments table
 ---@return table|nil
@@ -180,9 +184,16 @@ WorldTools.GetSegments = function(object,propertyToSegments)
 	return propertyToSegments[objectProperty]
 end
 
+
+--[[ ================================================ ]]--
+--- TILE TRANSPARENCY ---
+--[[ ================================================ ]]--
+
 ---Checks if the door can be seen through.
 ---
----Notably checks if the door is open, if there are barricades on the same square or opposite square, and if there are closed curtains.
+--- 1. Checks if the door is open
+--- 2. Checks for barricades
+--- 3. Checks if door is transparent and has closed curtains
 ---@param door IsoDoor
 ---@param spriteProperties PropertyContainer
 ---@return boolean
@@ -209,7 +220,8 @@ end
 
 ---Checks if the window can be seen through.
 ---
----Notably checks if there are barricades on the same square or opposite square, and if there are closed curtains.
+--- 1. Checks for barricades
+--- 2. Checks for closed curtains
 ---@param window IsoWindow
 ---@return boolean
 WorldTools.CanSeeThroughWindow = function(window)
@@ -225,92 +237,5 @@ WorldTools.CanSeeThroughWindow = function(window)
     return not curtains or curtains:IsOpen()
 end
 
----Checks if the object can be seen through based on a set of conditions for only a few specific structure types.
----@param object IsoObject
----@return boolean
----@return string|false|nil
-WorldTools.CanSeeThrough = function(object)
-	local sprite = object:getSprite()
-	if not sprite then return true end -- needs to be true as object is not valid
-
-    local properties = sprite:getProperties()
-	if not properties then return true end -- needs to be true as object is not valid
-
-    local objectProperty = WorldTools.GetObjectType(object, properties)
-    if not objectProperty then return true end -- needs to be true as object is not valid
-
-    local structureType = WorldTools._PropertyToStructureType[objectProperty]
-    if structureType == "Window" then
-        ---@cast object IsoWindow
-
-        -- check for barricades
-		local barricade1 = object:getBarricadeOnSameSquare()
-		local barricade2 = object:getBarricadeOnOppositeSquare()
-		if barricade1 and barricade1:isBlockVision() or barricade2 and barricade2:isBlockVision() then
-			return false, objectProperty
-		end
-
-        -- check for curtains
-        local curtains = object:HasCurtains() ---@as IsoCurtain
-        return not curtains or curtains:IsOpen(), objectProperty
-    elseif structureType == "Door" then
-        ---@cast object IsoDoor
-
-        objectProperty = object:getNorth() and "DoorN" or "DoorW"
-
-        -- check open
-        if object:IsOpen() then return true, objectProperty end
-
-        -- check for barricades
-		local barricade1 = object:getBarricadeOnSameSquare()
-		local barricade2 = object:getBarricadeOnOppositeSquare()
-		if barricade1 and barricade1:isBlockVision()
-        or barricade2 and barricade2:isBlockVision() then
-			return false, objectProperty
-		end
-
-        if properties:Is("doorTrans") then
-            -- check for curtains
-            local curtains = object:HasCurtains() ---@as IsoCurtain
-            return not curtains or curtains:isCurtainOpen(), objectProperty -- TODO: might be wrong for IsoThumpable
-        end
-
-		return false, objectProperty
-    -- elseif structureType == "Stairs" then
-    --     return 
-    end
-
-    return false, objectProperty
-end
-
-WorldTools.IsWindow = function(object)
-    if instanceof(object, "IsoWindow") then
-        return true
-    elseif instanceof(object, "IsoThumpable") then
-        return object:isWindow()
-    end
-end
-
-WorldTools.IsDoor = function(object)
-    if instanceof(object,"IsoDoor") then
-        return true
-    elseif instanceof(object,"IsoThumpable") then
-        return object:isDoor()
-    end
-end
-
-WorldTools.IsWindowOrDoor = function(object)
-    return WorldTools.IsWindow(object) or WorldTools.IsDoor(object)
-end
-
-WorldTools.HasWindowOrDoor = function(square)
-    local objects = square:getObjects()
-    for i = 0, objects:size() - 1 do
-        local object = objects:get(i)
-        if WorldTools.IsWindow(object) or WorldTools.IsDoor(object) then
-            return true, object
-        end
-    end
-end
 
 return WorldTools
