@@ -58,6 +58,104 @@ WorldTools.getBuildingID = function(buildingDef)
     return x_bID.."x"..y_bID.."x"..z_bID
 end
 
+---Checks if object is a windows.
+---@param object any
+---@return boolean
+WorldTools.IsWindow = function(object)
+    if instanceof(object, "IsoWindow") then
+        return true
+    elseif instanceof(object, "IsoThumpable") then
+        return object:isWindow()
+    end
+    return false
+end
+
+---Checks if object is a door.
+---@param object any
+---@return boolean
+WorldTools.IsDoor = function(object)
+    if instanceof(object,"IsoDoor") then
+        return true
+    elseif instanceof(object,"IsoThumpable") then
+        return object:isDoor()
+    end
+    return false
+end
+
+---Checks if object is a window or a door.
+---@param object any
+---@return boolean
+WorldTools.IsWindowOrDoor = function(object)
+    return WorldTools.IsWindow(object) or WorldTools.IsDoor(object)
+end
+
+---Checks if the square has a window or a door.
+---@param square IsoGridSquare
+---@return boolean, IsoObject|nil
+WorldTools.HasWindowOrDoor = function(square)
+    local objects = square:getObjects()
+    for i = 0, objects:size() - 1 do
+        local object = objects:get(i)
+        if WorldTools.IsWindow(object) or WorldTools.IsDoor(object) then
+            return true, object
+        end
+    end
+    return false
+end
+
+
+--[[ ================================================ ]]--
+--- TILE TRANSPARENCY ---
+--[[ ================================================ ]]--
+
+---Checks if the door can be seen through.
+---
+--- 1. Checks if the door is open
+--- 2. Checks for barricades
+--- 3. Checks if door is transparent and has closed curtains
+---@param door IsoDoor
+---@param spriteProperties PropertyContainer
+---@return boolean
+WorldTools.CanSeeThroughDoor = function(door,spriteProperties)
+    -- check open
+    if door:IsOpen() then return true end
+
+    -- check for barricades
+    local barricade1 = door:getBarricadeOnSameSquare()
+    local barricade2 = door:getBarricadeOnOppositeSquare()
+    if barricade1 and barricade1:isBlockVision()
+    or barricade2 and barricade2:isBlockVision() then
+        return false
+    end
+
+    if spriteProperties:Is("doorTrans") then
+        -- check for curtains
+        local curtains = door:HasCurtains() ---@as IsoCurtain
+        return not curtains or curtains:isCurtainOpen() -- TODO: might be wrong for IsoThumpable
+    end
+
+    return false
+end
+
+---Checks if the window can be seen through.
+---
+--- 1. Checks for barricades
+--- 2. Checks for closed curtains
+---@param window IsoWindow
+---@param spriteProperties PropertyContainer
+---@return boolean
+WorldTools.CanSeeThroughWindow = function(window,spriteProperties)
+    -- check for barricades
+    local barricade1 = window:getBarricadeOnSameSquare()
+    local barricade2 = window:getBarricadeOnOppositeSquare()
+    if barricade1 and barricade1:isBlockVision() or barricade2 and barricade2:isBlockVision() then
+        return false
+    end
+
+    -- check for curtains
+    local curtains = window:HasCurtains() ---@as IsoCurtain
+    return not curtains or curtains:IsOpen()
+end
 
 
 --[[ ================================================ ]]--
@@ -112,35 +210,59 @@ WorldTools._PropertyToStructureType = {
     ["stairsTW"] = "Stairs",
 }
 
+WorldTools._SpritePropertyCheck = {
+    "WallN",
+    "WallW",
+    "WallNW",
+    "DoorSound",
+    "WindowN",
+    "WindowW",
+    "stairsBN",
+    "stairsBW",
+    "stairsMN",
+    "stairsMW",
+    "stairsTN",
+    "stairsTW",
+}
+
 ---Retrieve property identification.
 ---@param object IsoObject
 ---@param spriteProperties PropertyContainer
----@return string|false
+---@return string|nil objectProperty
+---@return string|nil objectType
 WorldTools.GetObjectType = function(object, spriteProperties)
-	if spriteProperties:Is("WallN") then
-		return "WallN"
-	elseif spriteProperties:Is("WallW") then
-		return "WallW"
-	elseif spriteProperties:Is("WallNW") then
-		return "WallNW"
-	elseif spriteProperties:Is("DoorSound") then
-		return "DoorSound"
-	elseif spriteProperties:Is("WindowN") then
-		return "WindowN"
-	elseif spriteProperties:Is("WindowW") then
-		return "WindowW"
-    elseif object:isStairsObject() then
-        local type = object:getType()
-        return type and WorldTools.IsoObjectType[tostring(type)] or false
-	end
+    ---@type IsoObjectType|string just bcs Lua typing shows a warning when there shouldn't be one
+    local _type = object:getType()
+    _type = tostring(_type)
 
-	return false
+    for i = 1, #WorldTools._SpritePropertyCheck do
+        local property = WorldTools._SpritePropertyCheck[i]
+        if spriteProperties:Is(property) or property == _type then
+            return property, WorldTools._PropertyToStructureType[property]
+        end
+    end
+
+	return nil, nil
 end
 
 
 --[[ ================================================ ]]--
 --- OBJECT GEOMETRY ---
 --[[ ================================================ ]]--
+
+---Table of object types and custom functions that are ran when accessing the object segments. If one of the functions returns true, the object is invalid.
+WorldTools.ObjectsSegmentChecks = {
+    ["Door"] = {
+        WorldTools.CanSeeThroughDoor,
+    },
+    ["Window"] = {
+        WorldTools.CanSeeThroughWindow,
+    },
+}
+
+
+
+
 
 ---Retrieve segments that define the 2D flat geometry of the object.
 ---@param object IsoObject|IsoDoor|IsoWindow|IsoThumpable
@@ -153,89 +275,22 @@ WorldTools.GetSegments = function(object,propertyToSegments)
     local spriteProperties = sprite:getProperties()
     if not spriteProperties then return nil end
 
-    local objectProperty
-
-    --- WALLS ---
-    if spriteProperties:Is("WallN") or spriteProperties:Is("WallW") or spriteProperties:Is("WallNW") then
-        ---@cast object IsoObject
-        objectProperty = spriteProperties:Is("WallN") and "WallN" or spriteProperties:Is("WallW") and "WallW" or "WallNW"
-
-    --- DOORS ---
-	elseif spriteProperties:Is("DoorSound") then
-        ---@cast object IsoDoor
-        if WorldTools.CanSeeThroughDoor(object,spriteProperties) then return nil end
-        objectProperty = object:getNorth() and "DoorN" or "DoorW"
-
-    --- WINDOWS ---
-    elseif (spriteProperties:Is("WindowN") or spriteProperties:Is("WindowW")) then
-        ---@cast object IsoWindow
-        if WorldTools.CanSeeThroughWindow(object) then return nil end
-
-        objectProperty = spriteProperties:Is("WindowN") and "WindowN" or spriteProperties:Is("WindowW") and "WindowW"
-
-    --- STAIRS ---
-    elseif object:isStairsObject() then
-        local type = object:getType()
-        objectProperty = type and WorldTools.IsoObjectType[tostring(type)]
-	end
-
+    local objectProperty, objectType = WorldTools.GetObjectType(object, spriteProperties)
     if not objectProperty then return nil end
 
-	return propertyToSegments[objectProperty]
-end
-
-
---[[ ================================================ ]]--
---- TILE TRANSPARENCY ---
---[[ ================================================ ]]--
-
----Checks if the door can be seen through.
----
---- 1. Checks if the door is open
---- 2. Checks for barricades
---- 3. Checks if door is transparent and has closed curtains
----@param door IsoDoor
----@param spriteProperties PropertyContainer
----@return boolean
-WorldTools.CanSeeThroughDoor = function(door,spriteProperties)
-    -- check open
-    if door:IsOpen() then return true end
-
-    -- check for barricades
-    local barricade1 = door:getBarricadeOnSameSquare()
-    local barricade2 = door:getBarricadeOnOppositeSquare()
-    if barricade1 and barricade1:isBlockVision()
-    or barricade2 and barricade2:isBlockVision() then
-        return false
+    local behaviors = WorldTools.ObjectsSegmentChecks[objectType]
+    if behaviors then
+        for i = 1, #behaviors do
+            local behavior = behaviors[i]
+            if behavior(object, spriteProperties) then -- Lua screams at object bcs type is not updated based on the objectType, ignore it
+                return nil
+            end
+        end
     end
 
-    if spriteProperties:Is("doorTrans") then
-        -- check for curtains
-        local curtains = door:HasCurtains() ---@as IsoCurtain
-        return not curtains or curtains:isCurtainOpen() -- TODO: might be wrong for IsoThumpable
-    end
-
-    return false
+	return objectProperty and propertyToSegments[objectProperty] or nil
 end
 
----Checks if the window can be seen through.
----
---- 1. Checks for barricades
---- 2. Checks for closed curtains
----@param window IsoWindow
----@return boolean
-WorldTools.CanSeeThroughWindow = function(window)
-    -- check for barricades
-    local barricade1 = window:getBarricadeOnSameSquare()
-    local barricade2 = window:getBarricadeOnOppositeSquare()
-    if barricade1 and barricade1:isBlockVision() or barricade2 and barricade2:isBlockVision() then
-        return false
-    end
-
-    -- check for curtains
-    local curtains = window:HasCurtains() ---@as IsoCurtain
-    return not curtains or curtains:IsOpen()
-end
 
 
 return WorldTools

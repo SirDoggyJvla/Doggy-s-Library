@@ -37,8 +37,8 @@ DebugContextMenu.OnFillWorldObjectContextMenu = function(playerIndex, context, w
     if not square then return end
 
 
-    -- create the submenu for Doggy's API debug context menu
-    local mainMenuOption = context:addOptionOnTop("Doggy's API: Debug")
+    -- create the submenu for Doggy's Library debug context menu
+    local mainMenuOption = context:addOptionOnTop("Doggy's Library: Debug")
     local mainMenu = context:getNew(context)
     context:addSubMenu(mainMenuOption, mainMenu)
 

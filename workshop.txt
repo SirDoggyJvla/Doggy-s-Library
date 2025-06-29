@@ -1,6 +1,6 @@
 version=1
 id=3428272880
-title=Doggy's API
+title=Doggy's Library
 description=[h1]What does this mod do ?[/h1]
 description=This mod is a framework developped for myself and other modders.
 description=

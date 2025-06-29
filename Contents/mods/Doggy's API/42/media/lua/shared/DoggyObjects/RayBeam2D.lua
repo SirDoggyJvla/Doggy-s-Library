@@ -11,7 +11,28 @@
 ]]--
 --[[ ================================================ ]]--
 
+---Data used to identify collision objects and conditions.
+---@alias ObjectType string (IsoFlagType or IsoObjectType enums)
+---@alias StructureType string
+---@alias PropertyToSegments table
+---@alias ObjectValidChecks table< ObjectType, (fun(IsoObject,PropertyContainer):boolean)[] >
+---@alias ValidProperties ObjectType[]
+---@alias PropertyToStructureType table<ObjectType, StructureType>
+
+---@class RaysCollisionsProperties
+---@field propertyToSegments PropertyToSegments
+---@field objectValidChecks ObjectValidChecks
+---@field validProperties ValidProperties
+---@field propertyToStructureType PropertyToStructureType
+
 ---requirements
+
+---@class RayBeam2D : ISBaseObject
+---@field startPoint table
+---@field vectorBeam Vector2
+---@field raysCollisions RaysCollisionsProperties
+---@field ignoredObjects table|nil
+---@field deltaLength number
 local RayBeam2D = ISBaseObject:derive("RayBeam2D")
 
 --tools
@@ -27,6 +48,7 @@ local math_sqrt = math.sqrt
 
 
 ---Table of object type to their respective segments.
+---@static
 RayBeam2D.propertyToSegments = {
 	["WallN"] = {
 		{1,0,y_offset = 0},
@@ -53,27 +75,83 @@ RayBeam2D.propertyToSegments = {
 }
 
 
----Verifies if the objects can be seen through and if not verify if the beam intersects with the object.
+
+---Retrieve property identification.
+---@param object IsoObject
+---@param spriteProperties PropertyContainer
+---@return string|nil objectProperty
+---@return string|nil objectType
+function RayBeam2D:_getObjectType(object, spriteProperties)
+    ---@type IsoObjectType|string just bcs Lua typing shows a warning when there shouldn't be one
+    local _type = object:getType()
+    _type = tostring(_type)
+
+    local raysCollisions = self.raysCollisions
+    local validProperties = raysCollisions.validProperties
+    for i = 1, #validProperties do
+        local property = validProperties[i]
+        if spriteProperties:Is(property) or property == _type then
+            return property, raysCollisions.propertyToStructureType[property]
+        end
+    end
+
+	return nil, nil
+end
+
+
+---Retrieve segments that define the 2D flat geometry of the object.
+---@param object IsoObject|IsoDoor|IsoWindow|IsoThumpable
+---@return table|nil
+function RayBeam2D:_getSegments(object)
+    local sprite = object:getSprite()
+    if not sprite then return nil end
+
+    local spriteProperties = sprite:getProperties()
+    if not spriteProperties then return nil end
+
+    local objectProperty, objectType = self:_getObjectType(object, spriteProperties)
+    if not objectProperty then return nil end
+
+    local raysCollisions = self.raysCollisions
+
+    -- apply custom behavior to this object type if present
+    local behaviors = raysCollisions.objectValidChecks[objectType]
+    if behaviors then
+        for i = 1, #behaviors do
+            local behavior = behaviors[i]
+
+            -- if behavior returns true, the object is invalid and should not be used
+            if behavior(object, spriteProperties) then -- Lua screams at object bcs type is not updated based on the objectType, ignore it
+                return nil
+            end
+        end
+    end
+
+	return objectProperty and raysCollisions.propertyToSegments[objectProperty] or nil
+end
+
+
+
+---Verify if the objects that intersect with the ray beam and find the one with the closest hit point. Retrieves valid objects and their segments based on given `RayCastProperties`.
 ---@param objects any
 ---@return IsoObject|nil closestObject
 ---@return table|nil objectSegment
----@return table|nil
+---@return table|nil finalPoint
 function RayBeam2D:_checkForIntersectedObject(objects)
-	local closestObject, objectSegment, finalPoint
-	local _shortestDistance = 9999999
+	local closestObject, objectSegment, finalPoint -- init return variables
+	local _shortestDistance = 9999999 -- huge number to start with
 
     -- retrieve infos
     local _ignoredObjects = self.ignoredObjects
     local startPoint = self.startPoint
     local farPoint = self.farPoint
-    local propertyToSegments = self.propertyToSegments
 
     -- Check for each objects
 	for i = 0, objects:size() - 1 do repeat
 		local object = objects:get(i)
 		if _ignoredObjects and _ignoredObjects[object] then break end
 
-        local segments = WorldTools.GetSegments(object,propertyToSegments)
+        local segments = self:_getSegments(object)
         if not segments then
             break
         end
@@ -114,7 +192,7 @@ end
 ---
 ---The ray beam is casted from the `startPoint` in the direction of the `vectorBeam`, slowly checking coordinates by moving by `deltaLength` until either an object intersects the beam or it reaches its maximum length.
 ---@return table squares
-function RayBeam2D:castRay()
+function RayBeam2D:castRaySquares()
     local x1, y1, z = self.x1, self.y1, self.z
     local deltaVector = self.deltaVector
     local beamLength = self.beamLength
@@ -206,21 +284,37 @@ function RayBeam2D:initialize()
 end
 
 ---Create a new RayBeam2D instance.
----@param startPoint table
+---@param startPoint {x:number, y:number, z:number}
 ---@param vectorBeam Vector2
----@param _ignoredObjects? table|nil
+---@param raysCollisions RaysCollisionsProperties
+---@param _ignoredObjects? table<IsoObject, true>|nil
 ---@param _deltaLength? number|nil
----@return table
-function RayBeam2D:new(startPoint, vectorBeam, _ignoredObjects, _deltaLength)
+---@return RayBeam2D o instance
+function RayBeam2D:new(startPoint, vectorBeam, raysCollisions, _ignoredObjects, _deltaLength)
     local o = {}
     setmetatable(o, self)
     self.__index = self
 
+    -- generate validProperties
+    raysCollisions.validProperties = {}
+    for k,_ in pairs(raysCollisions.propertyToStructureType) do
+        table.insert(raysCollisions.validProperties, k)
+    end
+
     -- parameters
-    o.deltaLength = _deltaLength or 0.01
     o.startPoint = startPoint
     o.vectorBeam = vectorBeam
-    o.ignoredObjects = _ignoredObjects or {}
+    o.raysCollisions = raysCollisions
+
+    -- optional parameters
+    if type(_ignoredObjects) ~= "table" then
+        _ignoredObjects = {}
+    end
+    if type(_deltaLength) ~= "number" or _deltaLength <= 0 then
+        _deltaLength = 0.01
+    end
+    o.ignoredObjects = _ignoredObjects
+    o.deltaLength = _deltaLength
 
     -- initialize vectors and values used in casting the ray
     o:initialize()

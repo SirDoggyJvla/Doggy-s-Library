@@ -37,7 +37,7 @@ local SandboxOptionsScreen_createPanel = SandboxOptionsScreen.createPanel
 
 ---Intercept the creation of the panel to store each option based on their name.
 ---@param page table
----@return table
+---@return SandboxOptionsScreenPanel
 function SandboxOptionsScreen:createPanel(page)
     local panel = SandboxOptionsScreen_createPanel(self, page)
 
