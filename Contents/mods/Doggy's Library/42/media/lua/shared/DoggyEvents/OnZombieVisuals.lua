@@ -71,10 +71,6 @@ Events.OnTick.Add(function(tick)
         -- get zombie
         local zombie = ZOMBIES_CHANGE_VISUALS_NEXT_TICK[i]
 
-        print(zombie:isPersistentOutfitInit())
-        zombie:dressInRandomOutfit()
-        print(zombie:isPersistentOutfitInit())
-
         -- if pID is not 0 then that zombie can get set
         if zombie:getPersistentOutfitID() ~= 0 then
             -- trigger event for this zombie
